@@ -1,0 +1,7 @@
+<?= $productsCtrl->getError()->getView() ?>
+
+<?=
+
+$form
+
+?>
