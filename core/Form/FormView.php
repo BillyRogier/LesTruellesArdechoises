@@ -44,7 +44,7 @@ class FormView extends Form implements FormViewInterface
             $value = $type->getTag($name, $options, $options_html, $value['options']['value']);
         } else if (isset($value['options']['choices']) && $type::class == ChoiceType::class) {
             $options = $this->getOptions($value['options'], true);
-            $value = $type->getTag($name, $options, $options_html,  $value['options']);
+            $value = $type->getTag($name, $options,  $value['options']);
         } else {
             $options = $this->getOptions($value['options']);
             $value = $type->getTag($name, $options, $options_html);

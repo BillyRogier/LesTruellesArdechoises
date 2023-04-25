@@ -9,6 +9,6 @@ return array(
     ],
     "app" => [
         "name" => "Les Truelles Ardéchoises",
-        "base_url" => "http://localhost/lestruellesardechoises.fr%20-%20Copie/public"
+        "base_url" => "http://localhost/lestruellesardechoises.fr/public"
     ]
 );

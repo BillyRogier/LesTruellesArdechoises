@@ -383,6 +383,28 @@ input.btn {
     padding: 0 5px;
 }
 
+table,
+td {
+    border: 1px solid var(--first-color);
+    font: var(--small-size);
+}
+
+table .btn {
+    display: block;
+    width: 100%;
+}
+
+th,
+td {
+    padding: 5px;
+}
+
+thead,
+tfoot {
+    background-color: var(--first-color);
+    color: #fff;
+}
+
 .error-message > li {
     list-style: disc;
     list-style-position: inside;
@@ -400,6 +422,16 @@ input.btn {
     border-radius: 5px;
     font: var(--small-size);
     color: #4c9c0b;
+}
+
+.danger {
+    width: 100%;
+    padding: 15px 25px;
+    background-color: #9c0b0b40;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font: var(--small-size);
+    color: #9c0b0b;
 }
 
 .img-item {

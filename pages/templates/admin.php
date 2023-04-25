@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Description" />
     <link rel="shortcut icon" href="<?= URL ?>/assets/img/logo_responsive.svg" type="image/x-icon">
     <link rel="stylesheet" href="<?= URL ?>/assets/css/reset.css">
     <link rel="stylesheet" href="<?= URL ?>/assets/css/admin.css">
@@ -30,7 +29,7 @@
                 <li><a href="<?= URL ?>/admin/about" class="link">À propos</a></li>
                 <li><a href="<?= URL ?>/admin/projects-categorie" class="link">Projets</a></li>
                 <li><a href="<?= URL ?>/admin/info" class="link">Info</a></li>
-                <li><a href="<?= URL ?>/admin/register" class="link">Créer un compte</a></li>
+                <li><a href="<?= URL ?>/admin/users" class="link">Comptes</a></li>
             </ul>
         </div>
     </header>

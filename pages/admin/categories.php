@@ -1,6 +1,6 @@
 <main class="grid">
     <h1 class="categories_title"><?= $title ?></h1>
-    <div class="error-container"></div>
+    <div class="error-container"><?= isset($_SESSION['message']) ? $_SESSION['message'] : "" ?></div>
     <div class="products_container grid">
         <?php
 

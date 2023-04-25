@@ -29,7 +29,6 @@ class GetController extends AbstarctController
         }
         $this->app = App::getInstance();
     }
-
     #[Route('/get/delete-content', name: 'form_content')]
     public function getDeleteContent()
     {
@@ -41,7 +40,8 @@ class GetController extends AbstarctController
 
         if ($content) {
             $old_img = $content->getJoin(Pictures::class)->getSrc();
-            $imgs = $ContentTable->getJoin(Pictures::class)->findAllBy(['img_id' => $content->getImg_id()]);
+            $old_id = $content->getImg_id();
+            $imgs = $ContentTable->getJoin(Pictures::class)->findAllBy(['pictures.src' => $old_img]);
             $uploads_dir = ROOT . '\public\assets\img';
             $ContentTable->delete(['id' => $_POST['id']]);
 
@@ -49,9 +49,9 @@ class GetController extends AbstarctController
                 if (file_exists("$uploads_dir\\$old_img")) {
                     unlink("$uploads_dir\\$old_img");
                 }
-
-                $ContentTable->getJoin(Pictures::class)->delete(['img_id' => $content->getImg_id()]);
             }
+
+            $ContentTable->getJoin(Pictures::class)->delete(['pictures.img_id' => $old_id]);
         }
     }
 
@@ -74,39 +74,6 @@ class GetController extends AbstarctController
     public function getImage()
     {
         echo URL . "/assets/img/";
-    }
-
-    #[Route('/get/upload-image', name: 'upload_image')]
-    public function uploadImage()
-    {
-        // $uploads_dir = ROOT . '\public\assets\img';  
-        // if (isset($_FILES["file"])) {
-        $tmp_name = $_FILES["file"]["tmp_name"];
-        // $name = basename($_FILES["file"]["name"]);
-        // if (!file_exists("$uploads_dir\\$name")) {
-        //     move_uploaded_file($tmp_name, "$uploads_dir\\$name");
-        // }
-        // }
-        echo $tmp_name;
-    }
-
-    #[Route('/get/delete-image', name: 'delete_image')]
-    public function deleteImage()
-    {
-        if (isset($_POST["src"])) {
-            $carouselTable = $this->app->getTable('Carousels');
-            $projectsTable = $this->app->getTable('Projects');
-            $contentTable = $this->app->getTable('Content');
-            $projectCategoriesTable = $this->app->getTable('ProjectCategories');
-            if (
-                !$carouselTable->findAllBy(['img' => $_POST["src"]]) &&
-                !$projectsTable->findAllBy(['product_img' => $_POST["src"]]) &&
-                !$contentTable->findAllBy(['img' => $_POST["src"]]) &&
-                !$projectCategoriesTable->findAllBy(['img' => $_POST["src"]])
-            ) {
-                unlink(ROOT . "/public/assets/img/" . $_POST["src"]);
-            }
-        }
     }
 
     #[Route('/register', name: 'register')]

@@ -9,6 +9,7 @@ use Core\Route\Route;
 class App
 {
     public $title;
+    public $desc;
     private $db_instance;
     private $config;
     private static $_instance;
@@ -109,7 +110,6 @@ class App
         if (!isset($route) || empty($route)) {
             $route = "404";
         } else if (gettype($route) == "string") {
-            echo $route;
             $_SESSION['message'] = "";
             exit;
         }
@@ -124,6 +124,7 @@ class App
 
         if (!empty($route->getTemplates())) {
             $this->title .= " | " . $title;
+            $this->desc .= isset($desc) || !empty($desc) ? $desc : "";
 
             ob_start();
 
@@ -153,13 +154,13 @@ class App
         foreach ($controllers as $controller) {
             $route = $this->tryRoute($controller, $path);
             if ($route != "404") {
-                $productsCtrl = $this->getController($controller);
                 return $route;
                 break;
             }
         }
 
         if ($route == '404') {
+            header("HTTP/1.0 404 Not Found");
             exit;
         }
     }
@@ -175,14 +176,6 @@ class App
             }
         }
         return $array;
-    }
-
-    public function createUrl($url)
-    {
-        $link = htmlentities(strtolower(str_replace("-", " ", $url)), ENT_QUOTES, 'UTF-8');
-        $link = preg_replace('~&([a-z]{1,2})(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);~i', '$1', $link);
-        $link = str_replace(" ", "-", $link);
-        return $link;
     }
 
     public function isAdmin()

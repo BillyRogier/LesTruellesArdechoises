@@ -45,7 +45,8 @@ class Type
     function select($name, $select_option, $options)
     {
         return
-            "<select name=\"$name\" id=\"$name\"
-                $select_option>$options</select>";
+            "<div class=\"$name-item\">
+            <select name=\"$name\" id=\"$name\"
+                $select_option>$options</select></div>";
     }
 }

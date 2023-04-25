@@ -1,6 +1,6 @@
 <main class="grid">
     <div class="section-container grid">
-        <section class="projects data grid">
+        <div class="projects data grid">
             <h1 class="categories_title"><?= $h1 ?></h1>
             <div class="contents grid">
                 <?php
@@ -21,6 +21,6 @@
                     </section>
                 <?php endforeach; ?>
             </div>
-        </section>
+        </div>
     </div>
 </main>

@@ -31,20 +31,20 @@
         <div class="arrow down scroll-down"><img src="<?= URL ?>/assets/icon/arrow-down.svg" alt=""></div>
     </section>
     <div class="section-container grid">
-        <?php foreach ($contents as $content) : ?>
+        <?php if ($content) : ?>
             <section class="about">
                 <div class="data grid">
                     <div class="subtitle">
-                        <h2><?= $content->getSubtitle() ?></h2>
+                        <h2>À propos</h2>
                     </div>
                     <img src="<?= URL ?>/assets/img/<?= $content->getJoin(Pictures::class)->getSrc() ?>" alt="<?= $content->getJoin(Pictures::class)->getAlt() ?>">
                     <div class="about_data grid">
                         <p><?= $content->getText() ?></p>
-                        <a href="#" class="btn">Voir plus</a>
+                        <a href="<?= URL ?>/about" class="btn">Voir plus</a>
                     </div>
                 </div>
             </section>
-        <?php endforeach; ?>
+        <?php endif ?>
         <section id="project">
             <div class="data grid">
                 <div class="section_bar grid">

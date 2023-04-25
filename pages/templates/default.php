@@ -1,10 +1,17 @@
+<?php
+
+use App\Table\Info;
+
+$infoTable = new Info();
+$info = $infoTable->findOne();
+
+?>
 <!DOCTYPE html>
 <html lang="fr-FR">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Description" />
     <link rel="shortcut icon" href="<?= URL ?>/assets/img/logo_responsive.svg" type="image/x-icon">
     <link rel="stylesheet" href="<?= URL ?>/assets/css/reset.css">
     <link rel="stylesheet" href="<?= URL ?>/assets/css/style.css">
@@ -29,8 +36,8 @@
         </nav>
         <div class="menu grid">
             <ul class="nav_links grid">
-                <li><a href="<?= URL ?>#about" class="link">À propos</a></li>
-                <li><a href="<?= URL ?>#project" class="link">Nos projets</a></li>
+                <li><a href="<?= URL ?>/about" class="link about_link">À propos</a></li>
+                <li><a href="<?= URL ?>/project" class="link projects_link">Nos projets</a></li>
                 <?php if (isset($reviews) && !empty($reviews)) : ?>
                     <li><a href="<?= URL ?>#review" class="link">Nos Avis</a></li>
                 <?php endif ?>
@@ -38,27 +45,20 @@
             <div class="menu-foot grid">
                 <div class="line"></div>
                 <div class="mini-foot grid">
-                    <a href="#" class="icon"><img src="<?= URL ?>/assets/icon/instagram_icon.svg" alt=""></a>
-                    <a href="#" class="icon"><img src="<?= URL ?>/assets/icon/facebook_icon.svg" alt=""></a>
+                    <a href="<?= $info->getInstagram() ?>" target="_blank"><img src="<?= URL ?>/assets/icon/instagram_icon.svg" class="icon" alt=""></a>
+                    <a href="<?= $info->getFacebook() ?>" target="_blank"><img src="<?= URL ?>/assets/icon/facebook_icon.svg" class="icon" alt=""></a>
                 </div>
             </div>
         </div>
     </header>
     <?= $content ?>
     <footer class="grid">
-        <?php
 
-        use App\Table\Info;
-
-        $infoTable = new Info();
-        $info = $infoTable->findOneBy(['id' => 1]);
-
-        ?>
         <div class="footer-container info grid">
             <p>Social media</p>
             <div class="social_media-icons grid">
-                <a href="<?= $info->getInstagram() ?>"><img src="<?= URL ?>/assets/icon/instagram_icon.svg" class="icon" alt=""></a>
-                <a href="<?= $info->getFacebook() ?>"><img src="<?= URL ?>/assets/icon/facebook_icon.svg" class="icon" alt=""></a>
+                <a href="<?= $info->getInstagram() ?>" target="_blank"><img src="<?= URL ?>/assets/icon/instagram_icon.svg" class="icon" alt=""></a>
+                <a href="<?= $info->getFacebook() ?>" target="_blank"><img src="<?= URL ?>/assets/icon/facebook_icon.svg" class="icon" alt=""></a>
             </div>
         </div>
         <div class="line"></div>
@@ -89,9 +89,9 @@
         </div>
         <div class="line"></div>
         <div class="links grid">
-            <a href="contact" class="link">Contact</a>
+            <a href="<?= URL ?>/contact" class="link">Contact</a>
             <div class="line"></div>
-            <a href="mentions-legales" class="link">Mentions légales</a>
+            <a href="<?= URL ?>/mentions-legales" class="link">Mentions légales</a>
         </div>
     </footer>
 </body>

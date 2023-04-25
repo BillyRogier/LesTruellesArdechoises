@@ -21,7 +21,6 @@
 html {
     font-size: 112.5%;
     scroll-behavior: smooth;
-    transition: all 0.3s;
 }
 
 h1,
@@ -718,14 +717,19 @@ footer a {
     margin-top: 40px;
 }
 
+.mentions-container.grid {
+    justify-items: start;
+    padding: 40px 40px 0;
+}
+
 .data > .contact_title {
     grid-area: 1/1/1/7;
 }
 
-.data > .contact_title,
+.contact_title,
 .data > .categories_title,
 .login-container > h1 {
-    color: var(--text-color);
+    color: var(--text-color) !important;
     width: fit-content;
 }
 

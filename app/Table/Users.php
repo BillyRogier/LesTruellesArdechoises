@@ -44,7 +44,7 @@ class Users extends Table
     public function flush()
     {
         if (isset($this->id)) {
-            parent::update([$this->email, $this->password, $this->id]);
+            parent::update(['email', 'password'], "id", [$this->email, $this->password, $this->id]);
         } else {
             parent::insert(['email', 'password'], [$this->email, $this->password]);
         }

@@ -9,7 +9,7 @@ class Pages extends Table
 {
     protected $table = "pages";
     #[Properties(type: 'int', length: 11)]
-    private int $id;
+    private int $page_id;
     #[Properties(type: 'string', length: 255)]
     private string $name;
     #[Properties(type: 'string', length: 255)]
@@ -78,32 +78,32 @@ class Pages extends Table
         return $this;
     }
 
-    /**
-     * Get the value of id
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * Set the value of id
-     *
-     * @return  self
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
     public function flush()
     {
-        if (isset($this->id)) {
-            parent::update(['name', 'title', 'url'], "id", [$this->name, $this->title,  $this->url, $this->id]);
+        if (isset($this->page_id)) {
+            parent::update(['name', 'title', 'url'], "page_id", [$this->name, $this->title,  $this->url, $this->page_id]);
         } else {
             parent::insert(['name', 'title', 'url'], [$this->name, $this->title,  $this->url]);
         }
+    }
+
+    /**
+     * Get the value of page_id
+     */
+    public function getPage_id()
+    {
+        return $this->page_id;
+    }
+
+    /**
+     * Set the value of page_id
+     *
+     * @return  self
+     */
+    public function setPage_id($page_id)
+    {
+        $this->page_id = $page_id;
+
+        return $this;
     }
 }

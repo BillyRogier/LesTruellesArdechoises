@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Description" />
+    <meta name="description" content="<?= $app->desc ?>" />
     <link rel="shortcut icon" href="<?= URL ?>/assets/img/logo_responsive.svg" type="image/x-icon">
     <link rel="stylesheet" href="<?= URL ?>/assets/css/reset.css">
     <link rel="stylesheet" href="<?= URL ?>/assets/css/style.css">

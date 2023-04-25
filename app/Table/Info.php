@@ -14,7 +14,7 @@ class Info extends Table
     private $location = null;
     #[Properties(type: 'string', length: 255)]
     private $email = null;
-    #[Properties(type: 'int', length: 15)]
+    #[Properties(type: 'string', length: 15)]
     private $num = null;
     #[Properties(type: 'string', length: 50000)]
     private $facebook = null;
@@ -34,7 +34,7 @@ class Info extends Table
     private $host_name = null;
     #[Properties(type: 'string', length: 50000)]
     private $host_location = null;
-    #[Properties(type: 'int', length: 15)]
+    #[Properties(type: 'string', length: 20)]
     private $host_number = null;
 
     /**

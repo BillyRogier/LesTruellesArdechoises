@@ -35,7 +35,7 @@ class AppController extends AbstarctController
         $page = $PagesTable->findOneBy(['url' => ""]);
 
         $PicturesTable = new Pictures();
-        $carousel_pictures = $PicturesTable->findAll("ORDER BY RAND() LIMIT 4");
+        $carousel_pictures = $PicturesTable->find("MIN(alt) AS alt, src", "GROUP BY src ORDER BY RAND() LIMIT 4");
 
         $ProjectCategorysTable = new ProjectCategorys();
         $ProjectCategorysTable
@@ -47,13 +47,50 @@ class AppController extends AbstarctController
         $ContentsTable
             ->innerJoin(Pictures::class)
             ->on("contents.img_id = pictures.img_id");
-        $contents = $ContentsTable->findAllBy(['page_id' => $page->getId()]);
+        $content = $ContentsTable->findOneBy(['page_id' => $page->getPage_id()]);
 
         return $this->render('/app/home.php', '/default.php', [
             'title' => 'Accueil',
+            'desc' => "",
             'carousels' => $carousel_pictures,
             'h1' => ucfirst($page->getTitle()),
+            'content' => $content,
+            'project_categorys' => $project_categorys,
+        ]);
+    }
+
+    #[Route('/about', name: 'about')]
+    public function about(): Response
+    {
+        $PagesTable = new Pages();
+        $page = $PagesTable->findOneBy(['url' => ""]);
+
+        $ContentsTable = new Contents();
+        $ContentsTable
+            ->innerJoin(Pictures::class)
+            ->on("contents.img_id = pictures.img_id");
+        $contents = $ContentsTable->findAllBy(['page_id' => $page->getPage_id()]);
+
+        return $this->render('/app/about.php', '/default.php', [
+            'title' => 'À propos',
+            'desc' => "",
+            'h1' => "À propos",
             'contents' => $contents,
+        ]);
+    }
+
+    #[Route('/project', name: 'projects catégorie')]
+    public function project(): Response
+    {
+        $ProjectCategorysTable = new ProjectCategorys();
+        $ProjectCategorysTable
+            ->innerJoin(Pictures::class)
+            ->on("project_categorys.img_id = pictures.img_id");
+        $project_categorys = $ProjectCategorysTable->findAll();
+
+        return $this->render('/app/projects.php', '/default.php', [
+            'title' => 'Projets',
+            'desc' => "",
             'project_categorys' => $project_categorys,
         ]);
     }
@@ -62,7 +99,7 @@ class AppController extends AbstarctController
     public function contact(): Response
     {
         $InfoTable = new Info();
-        $info = $InfoTable->findOneBy(['id' => 1]);
+        $info = $InfoTable->findOne();
 
         $form = $this->createForm("", "post", ['class' => 'form-contact grid'])
             ->add("name", TextType::class, ['autocomplete' => 'off', 'label' => 'name', 'id' => 'name'])
@@ -79,10 +116,15 @@ class AppController extends AbstarctController
                 $name = $data['name'];
                 $email = $data['email'];
                 $message = $data['message'];
-                $to = "" . $info->getEmail() . "";
+                $to = $info->getEmail();
                 $subject = 'Message reçu via le site web';
-                $headers = "Content-type: text/html; charset=iso-8859-1\r\n";
-                $send_email = mail($to, $subject, $message, $headers, "-f" . $email . "");
+                $message = $data['message'];
+                $headers = 'From: ' . $email . ''       . "\r\n" .
+                    'Nom: ' . $name . ''       . "\r\n" .
+                    'Reply-To: ' . $email . '' . "\r\n" .
+                    'X-Mailer: PHP/' . phpversion();
+
+                $send_email = mail($to, $subject, $message, $headers);
 
                 if (!$send_email) {
                     $_SESSION["message"] = $error->danger("Une erreur est survenue", 'error_container');
@@ -98,7 +140,21 @@ class AppController extends AbstarctController
 
         return $this->render('/app/contact.php', '/default.php',  [
             'title' => 'Contact',
+            'desc' => "",
             'form' => $form->createView(),
+            'info' => $info,
+        ]);
+    }
+
+    #[Route('/mentions-legales', name: 'mentions légales')]
+    public function mentionsLegales(): Response
+    {
+        $InfoTable = new Info();
+        $info = $InfoTable->findOne();
+
+        return $this->render('/app/mentions_legales.php', '/default.php',  [
+            'title' => 'Contact',
+            'desc' => "",
             'info' => $info,
         ]);
     }
@@ -160,12 +216,13 @@ class AppController extends AbstarctController
             ->innerJoin(Pictures::class)
             ->on("projects.img_id = pictures.img_id")
             ->innerJoin(Pages::class)
-            ->on("projects.page_id = pages.id");
+            ->on("projects.page_id = pages.page_id");
 
         $projects = $ProjectsTable->findAllBy(['projects.category_id' =>  $project_category->getId()]);
 
         return $this->render('/app/project_categorys.php',  '/default.php', [
             'title' => 'Project | ' . $project_category->getName(),
+            'desc' => "",
             'h1' => ucfirst($project_category->getName()),
             'project_category' => $project_category,
             'projects' => $projects,
@@ -186,10 +243,11 @@ class AppController extends AbstarctController
         $ContentsTable
             ->innerJoin(Pictures::class)
             ->on("contents.img_id = pictures.img_id");
-        $contents = $ContentsTable->findAllBy(['page_id' => $page->getId()]);
+        $contents = $ContentsTable->findAllBy(['contents.page_id' => $page->getPage_id()]);
 
         return $this->render('/app/project.php', '/default.php',  [
             'title' => 'Project |' . $category . ' | ' . $name,
+            'desc' => "",
             'h1' => ucfirst($page->getTitle()),
             'contents' => $contents,
         ]);

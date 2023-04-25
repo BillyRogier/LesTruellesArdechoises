@@ -53,7 +53,7 @@ class AdminController extends AbstarctController
         $page = $PagesTable->findOneBy(['url' => ""]);
 
         $form = $this->createForm("", "post", ['class' => 'grid'])
-            ->add("id", HiddenType::class, ['value' => $page->getId()])
+            ->add("id", HiddenType::class, ['value' => $page->getPage_id()])
             ->add("title", TextareaType::class, ['value' => $page->getTitle(), 'label' => 'Title', 'id' => "title"])
             ->add("submit", SubmitType::class, ['value' => 'Save', 'class' => 'btn'])
             ->getForm();
@@ -90,20 +90,14 @@ class AdminController extends AbstarctController
         $ContentsTable
             ->innerJoin(Pictures::class)
             ->on("contents.img_id = pictures.img_id");
-        $content = $ContentsTable->findOneBy(['page_id' => 6]);
+        $contents = $ContentsTable->findAllBy(['contents.page_id' => 6]);
 
         $form = $this->createForm("", "post", ['class' => 'grid'])
-            ->add("id", HiddenType::class, ['value' => $content->getId()])
-            ->add("img", HiddenType::class, [
-                'value' => $content->getJoin(Pictures::class)->getSrc(),
-                'html' =>
-                '<img src="' . URL . '/assets/img/' . $content->getJoin(Pictures::class)->getSrc() . '" alt="' . $content->getJoin(Pictures::class)->getAlt() . '">
-                <input name="alt" type="text" placeholder="Description image" class="img_alt" value="' . $content->getJoin(Pictures::class)->getAlt() . '">
-                <span class="del_image btn">delete</span>'
-            ])
-            ->add("file", FileType::class, ['class' => 'file', 'label' => 'file', 'id' => "file"])
-            ->add("subtitle", TextType::class, ['value' => $content->getSubtitle(), 'label' => 'Subtitle', 'id' => "subtitle"])
-            ->add("text", TextareaType::class, ['value' => $content->getText(), 'label' => 'Text', 'id' => "text"])
+            ->add("id", HiddenType::class)
+            ->add("img", HiddenType::class)
+            ->add("file", FileType::class, ['class' => 'file', 'label' => 'file', 'id' => uniqid()])
+            ->add("subtitle", TextType::class, ['label' => 'Subtitle', 'id' => "subtitle"])
+            ->add("text", TextareaType::class, ['label' => 'Text', 'id' => "text"])
             ->add("submit", SubmitType::class, ['value' => 'Save', 'class' => 'btn'])
             ->getForm();
 
@@ -117,44 +111,73 @@ class AdminController extends AbstarctController
                 } else {
                     $data = $form->getData();
 
-                    $old_id = $content->getImg_id();
-                    $old_img = $content->getJoin(Pictures::class)->getSrc();
+                    if (!empty($data['id'])) {
+                        $content = $ContentsTable->findOneBy(['id' => $data['id']]);
 
-                    $imgs = $ContentsTable->getJoin(Pictures::class)->findAllby(['img_id' => $old_id]);
+                        if ($content) {
+                            $old_img = $content->getJoin(Pictures::class)->getSrc();
+                            $imgs = $ContentsTable->getJoin(Pictures::class)->findAllby(['pictures.src' => $old_img]);
 
-                    if (count($imgs) <= 1) {
-                        unlink(ROOT . "/public/assets/img/" . $old_img);
+                            $uploads_dir = ROOT . '\public\assets\img';
+                            if (!empty($data['file']['name'])) {
+                                if (count($imgs) <= 1) {
+                                    if (file_exists("$uploads_dir\\$old_img")) {
+                                        unlink("$uploads_dir\\$old_img");
+                                    }
+                                }
+
+                                $tmp_name = $data["file"]["tmp_name"];
+                                $name = basename($data["file"]["name"]);
+                                if (!file_exists("$uploads_dir\\$name")) {
+                                    move_uploaded_file($tmp_name, "$uploads_dir\\$name");
+                                }
+                            }
+
+                            $ContentsTable->getJoin(Pictures::class)
+                                ->setImg_id($content->getImg_id())
+                                ->setSrc($data["img"])
+                                ->setAlt($data['alt'])
+                                ->flush();
+
+                            $content
+                                ->setSubtitle($data["subtitle"])
+                                ->setText($data["text"])
+                                ->flush();
+                        } else {
+                            $error->danger("error occured", "error_container");
+                        }
+                    } else {
+                        $uploads_dir = ROOT . '\public\assets\img';
+                        $tmp_name = $data["file"]["tmp_name"];
+                        $name = basename($data["file"]["name"]);
+                        if (!file_exists("$uploads_dir\\$name")) {
+                            move_uploaded_file($tmp_name, "$uploads_dir\\$name");
+                        }
+
+                        $ContentsTable->getJoin(Pictures::class)
+                            ->setSrc($data["img"])
+                            ->setAlt($data['alt'])
+                            ->flush();
+
+                        $ContentsTable
+                            ->setImg_id($ContentsTable->lastInsertId())
+                            ->setSubtitle($data["subtitle"])
+                            ->setText($data["text"])
+                            ->setPage_id(6)
+                            ->flush();
                     }
-
-                    $uploads_dir = ROOT . '\public\assets\img';
-                    $tmp_name = $data["file"]["tmp_name"];
-                    $name = basename($data["file"]["name"]);
-                    if (!file_exists("$uploads_dir\\$name")) {
-                        move_uploaded_file($tmp_name, "$uploads_dir\\$name");
-                    }
-
-                    $ContentsTable->getJoin(Pictures::class)
-                        ->setImg_id($content->getImg_id())
-                        ->setSrc($data["img"])
-                        ->setAlt($data['alt'])
-                        ->flush();
-
-                    $content
-                        ->setSubtitle($data["subtitle"])
-                        ->setText($data["text"])
-                        ->flush();
-
 
                     $_SESSION["message"] = $error->success("success");
-                    $error->location(URL . "/admin", "success_location");
+                    $error->location(URL . "/admin/about", "success_location");
                 }
             }
             $error->getXmlMessage($this->app->getProperties(Contents::class));
         }
 
         return $this->render('/admin/about.php', '/admin.php', [
-            'title' => 'Admin | ' . $content->getSubtitle(),
-            'form' => $form->createView(),
+            'title' => 'Admin | À propos',
+            'contents' => $contents,
+            'form' => $form,
         ]);
     }
 
@@ -212,7 +235,7 @@ class AdminController extends AbstarctController
             $error->getXmlMessage($this->app->getProperties(Info::class));
         }
 
-        return $this->render('/admin/about.php', '/admin.php', [
+        return $this->render('/admin/home.php', '/admin.php', [
             'title' => 'Admin | Info',
             'form' => $form->createView(),
         ]);
@@ -242,6 +265,8 @@ class AdminController extends AbstarctController
 
                 $ProjectsTable = new Projects();
                 $ProjectsTable
+                    ->innerJoin(Pages::class)
+                    ->on("projects.page_id = pages.page_id")
                     ->innerJoin(Pictures::class)
                     ->on("projects.img_id = pictures.img_id");
                 $projects = $ProjectsTable->findAllBy(['category_id' => $data['id']]);
@@ -251,33 +276,32 @@ class AdminController extends AbstarctController
                     $ContentsTable
                         ->innerJoin(Pictures::class)
                         ->on("contents.img_id = pictures.img_id");
-                    $contents = $ContentsTable->findAllBy(['page_id' => $project->getPage_id()]);
+
+                    $contents = $ContentsTable->findAllBy(['contents.page_id' => $project->getPage_id()]);
 
                     foreach ($contents as $content) {
                         $old_img = $content->getJoin(Pictures::class)->getSrc();
-                        $old_id = $content->getImg_id();
 
                         $ContentsTable->delete(['id' => $content->getId()]);
+                        $ContentsTable->getJoin(Pictures::class)->delete(['img_id' => $content->getImg_id()]);
 
-                        $imgs = $ProjectsTable->getJoin(Pictures::class)->findAllby(['img_id' => $old_id]);
+                        $imgs = $ProjectsTable->getJoin(Pictures::class)->findAllby(['pictures.src' => $old_img]);
 
                         if (count($imgs) <= 1) {
                             unlink(ROOT . "/public/assets/img/" . $old_img);
                         }
                     }
 
-                    $PagesTable = new Pages();
-                    $PagesTable->delete(['id' => $project->getPage_id()]);
-
-                    $ProjectsTable->delete(['category_id' => $data['id']]);
-
                     $old_img = $project->getJoin(Pictures::class)->getSrc();
                     $old_id = $project->getImg_id();
 
-                    $imgs = $ProjectsTable->getJoin(Pictures::class)->findAllby(['img_id' => $old_id]);
-                    $ProjectsTable->getJoin(Pictures::class)->delete(['img_id' => $old_id]);
+                    $imgs = $ProjectsTable->getJoin(Pictures::class)->findAllby(['pictures.src' => $old_img]);
 
-                    if (count($imgs) <= 1) {
+                    $ProjectsTable->delete(['projects.id' => $project->getId()]);
+                    $ProjectsTable->getJoin(Pages::class)->delete(['pages.page_id' => $project->getPage_id()]);
+                    $ProjectsTable->getJoin(Pictures::class)->delete(['pictures.img_id' => $old_id]);
+
+                    if (count($imgs)  <= 1) {
                         unlink(ROOT . "/public/assets/img/" . $old_img);
                     }
                 }
@@ -287,10 +311,10 @@ class AdminController extends AbstarctController
                 $old_img = $projectCategory->getJoin(Pictures::class)->getSrc();
                 $old_id = $projectCategory->getImg_id();
 
-                $imgs = $ProjectCategorysTable->getJoin(Pictures::class)->findAllby(['img_id' => $old_id]);
+                $imgs = $ProjectCategorysTable->getJoin(Pictures::class)->findAllby(['pictures.src' => $old_img]);
 
                 $ProjectCategorysTable->delete(['id' => $data['id']]);
-                $ProjectCategorysTable->getJoin(Pictures::class)->delete(['img_id' => $old_id]);
+                $ProjectCategorysTable->getJoin(Pictures::class)->delete(['pictures.img_id' => $old_id]);
 
                 if (count($imgs)  <= 1) {
                     unlink(ROOT . "/public/assets/img/" . $old_img);
@@ -406,10 +430,9 @@ class AdminController extends AbstarctController
                     $data = $formBuilder->getData();
                     $uploads_dir = ROOT . '\public\assets\img';
 
-                    $old_id = $projectCategory->getImg_id();
                     $old_img = $projectCategory->getJoin(Pictures::class)->getSrc();
 
-                    $imgs = $ProjectCategorysTable->getJoin(Pictures::class)->findAllby(['img_id' => $old_id]);
+                    $imgs = $ProjectCategorysTable->getJoin(Pictures::class)->findAllby(['pictures.src' => $old_img]);
 
                     if (!empty($data['file']['name'])) {
                         if (count($imgs) <= 1) {
@@ -471,7 +494,7 @@ class AdminController extends AbstarctController
             ->innerJoin(Pictures::class)
             ->on("projects.img_id = pictures.img_id")
             ->innerJoin(Pages::class)
-            ->on("projects.page_id = pages.id");
+            ->on("projects.page_id = pages.page_id");
 
         $projects = $ProjectsTable->findAllBy(['projects.category_id' =>  $projectCategorys->getId()]);
 
@@ -485,7 +508,7 @@ class AdminController extends AbstarctController
             if ($error->noError()) {
                 $data = $formBuilder->getData();
 
-                $project = $ProjectsTable->findOneBy(['projects.page_id' => $data['id']]);
+                $project = $ProjectsTable->findOneBy(['projects.id' => $data['id']]);
 
                 if ($project) {
                     $ContentsTable = new Contents();
@@ -497,11 +520,11 @@ class AdminController extends AbstarctController
 
                     foreach ($contents as $content) {
                         $old_img = $content->getJoin(Pictures::class)->getSrc();
-                        $old_id = $content->getImg_id();
 
                         $ContentsTable->delete(['id' => $content->getId()]);
+                        $ContentsTable->getJoin(Pictures::class)->delete(['img_id' => $content->getImg_id()]);
 
-                        $imgs = $ProjectsTable->getJoin(Pictures::class)->findAllby(['img_id' => $old_id]);
+                        $imgs = $ProjectsTable->getJoin(Pictures::class)->findAllby(['pictures.src' => $old_img]);
 
                         if (count($imgs) <= 1) {
                             unlink(ROOT . "/public/assets/img/" . $old_img);
@@ -511,10 +534,11 @@ class AdminController extends AbstarctController
                     $old_img = $project->getJoin(Pictures::class)->getSrc();
                     $old_id = $project->getImg_id();
 
-                    $imgs = $ProjectsTable->getJoin(Pictures::class)->findAllby(['img_id' => $old_id]);
+                    $imgs = $ProjectsTable->getJoin(Pictures::class)->findAllby(['pictures.src' => $old_img]);
 
-                    $ProjectsTable->delete(['page_id' => $data['id']]);
-                    $ProjectsTable->getJoin(Pictures::class)->delete(['img_id' => $old_id]);
+                    $ProjectsTable->delete(['projects.id' => $data['id']]);
+                    $ProjectsTable->getJoin(Pages::class)->delete(['pages.page_id' => $project->getPage_id()]);
+                    $ProjectsTable->getJoin(Pictures::class)->delete(['pictures.img_id' => $old_id]);
 
                     if (count($imgs)  <= 1) {
                         unlink(ROOT . "/public/assets/img/" . $old_img);
@@ -627,7 +651,7 @@ class AdminController extends AbstarctController
             ->innerJoin(Pictures::class)
             ->on("projects.img_id = pictures.img_id")
             ->innerJoin(Pages::class)
-            ->on("projects.page_id = pages.id");
+            ->on("projects.page_id = pages.page_id");
 
         $project = $ProjectsTable->findOneBy(['pages.url' =>  $name]);
 
@@ -646,7 +670,7 @@ class AdminController extends AbstarctController
         $formPage = $this->createForm("", "post", ['class' => 'grid'])
             ->add("id", HiddenType::class, ['value' => $project->getId()])
             ->add("title", TextType::class, ['value' => $project->getJoin(Pages::class)->getTitle(), 'label' => 'Title', 'id' => 'title'])
-            ->add("categorie", ChoiceType::class, ['choices' => $choice_category, 'table' => $ProjectsCategorysTable, 'value' => $project->getCategory_id(), 'label' => 'Catégorie', 'id' => 'categorie'])
+            ->add("categorie", ChoiceType::class, ['choices' => $choice_category, 'value' => $project->getCategory_id(), 'label' => 'Catégorie', 'id' => 'categorie'])
             ->add("img", HiddenType::class, [
                 'value' => $project->getJoin(Pictures::class)->getSrc(),
                 'html' =>
@@ -670,10 +694,9 @@ class AdminController extends AbstarctController
                         $data = $formPage->getData();
                         $uploads_dir = ROOT . '\public\assets\img';
 
-                        $old_id = $project->getImg_id();
                         $old_img = $project->getJoin(Pictures::class)->getSrc();
 
-                        $imgs = $ProjectsTable->getJoin(Pictures::class)->findAllby(['img_id' => $old_id]);
+                        $imgs = $ProjectsTable->getJoin(Pictures::class)->findAllby(['pictures.src' => $old_img]);
 
                         if (!empty($data['file']['name'])) {
                             if (count($imgs) <= 1) {
@@ -698,7 +721,7 @@ class AdminController extends AbstarctController
                         $url = $this->createUrl($data['title']);
 
                         $project->getJoin(Pages::class)
-                            ->setId($project->getPage_id())
+                            ->setPage_id($project->getPage_id())
                             ->setTitle($data['title'])
                             ->setName($data["title"])
                             ->setUrl($url)
@@ -746,10 +769,9 @@ class AdminController extends AbstarctController
                         if (isset($data["id"]) && !empty($data["id"])) {
                             $content =  $ContentTable->findOneby(['id' => $data['id']]);
 
-                            $old_id = $content->getImg_id();
                             $old_img = $content->getJoin(Pictures::class)->getSrc();
 
-                            $imgs = $ContentTable->getJoin(Pictures::class)->findAllby(['img_id' => $old_id]);
+                            $imgs = $ContentTable->getJoin(Pictures::class)->findAllby(['pictures.src' => $old_img]);
 
                             if (!empty($data['file']['name'])) {
                                 if (count($imgs) <= 1) {
@@ -814,7 +836,45 @@ class AdminController extends AbstarctController
     /**
      * Register new admin
      */
-    #[Route('/admin/register', name: 'register')]
+    #[Route('/admin/users', name: 'all users')]
+    public function allUsers()
+    {
+        $UsersTable = new Users();
+        $users = $UsersTable->findAll();
+
+        $form_delete = $this->createForm()
+            ->add("id", HiddenType::class)
+            ->add("submit", SubmitType::class, ['value' => 'Supprimer', 'class' => 'btn del'])
+            ->getForm();
+
+        if ($form_delete->isSubmit()) {
+            $error = $form_delete->isXmlValid($UsersTable);
+            if ($error->noError()) {
+                $data = $form_delete->getData();
+
+                if ($UsersTable->findOneBy(['id' => $data['id']])) {
+                    $UsersTable->delete(['id' => $data['id']]);
+
+                    $_SESSION["message"] = $error->success("Supprimé avec succès");
+                    $error->location(URL . "/admin/users", "success_location");
+                } else {
+                    $error->danger("erreur survenue", "error_container");
+                }
+            }
+            $error->getXmlMessage($this->app->getProperties(Users::class));
+        }
+
+        return $this->render('/admin/allusers.php', '/admin.php', [
+            'title' => 'All users',
+            'users' => $users,
+            'form_delete' => $form_delete
+        ]);
+    }
+
+    /**
+     * Register new admin
+     */
+    #[Route('/admin/register', name: 'insert user')]
     public function register(): Response
     {
         $usersTable = new Users();
@@ -822,7 +882,7 @@ class AdminController extends AbstarctController
         $formBuilder = $this
             ->createForm("", "post", ['class' => 'grid'])
             ->add("email", EmailType::class, ['label' => 'email', 'id' => 'email'])
-            ->add("password", PasswordType::class, ['label' => 'mot de passe', 'id' => 'password'])
+            ->add("password", PasswordType::class, ['label' => 'mot de passe', 'id' => 'password', 'data-pass' => true])
             ->add("submit", SubmitType::class, ['value' => 'login', 'class' => 'btn'])
             ->getForm();
 
@@ -843,7 +903,7 @@ class AdminController extends AbstarctController
                     $userid = $usersTable->lastInsertId();
                     $_SESSION['admin'] = $userid;
                     $_SESSION["message"] = $error->success("account create successfully");
-                    $error->location(URL . "/admin", "success_location");
+                    $error->location(URL . "/admin/users", "success_location");
                 }
             }
             $error->getXmlMessage($this->app->getProperties(Users::class));
@@ -852,6 +912,50 @@ class AdminController extends AbstarctController
         return $this->render('/admin/register.php', '/login.php', [
             'title' => 'Register',
             'form' => $formBuilder->createView(),
+        ]);
+    }
+
+    #[Route('/admin/users/update/{id}', name: 'update user')]
+    public function updateUser(int $id)
+    {
+        $UsersTable = new Users();
+        $user = $UsersTable->findOneBy(['id' => $id]);
+
+        if (!$user) {
+            $this->headLocation("/admin/users");
+        }
+
+        $form_update = $this->createForm("", "post", ['class' => 'grid'])
+            ->add("id", HiddenType::class, ['value' => $id])
+            ->add("email", EmailType::class, ['value' => $user->getEmail(), 'label' => 'Email', 'id' => 'email'])
+            ->add("new_password", PasswordType::class, ['label' => 'Nouveau mot de passe', 'id' => 'new_password', 'data-pass' => true])
+            ->add("old_password", PasswordType::class, ['label' => 'Ancien mot de passe', 'id' => 'old_password'])
+            ->add("submit", SubmitType::class, ['value' => 'Save', 'class' => 'btn'])
+            ->getForm();
+
+        if ($form_update->isSubmit()) {
+            $error = $form_update->isXmlValid($UsersTable);
+            if ($error->noError()) {
+                $data = $form_update->getData();
+                if (password_verify($data['old_password'], $user->getPassword())) {
+
+                    $user
+                        ->setPassword(password_hash($data["new_password"], PASSWORD_DEFAULT))
+                        ->setEmail($data['email'])
+                        ->flush();
+
+                    $_SESSION["message"] = $error->success("Changement sauvegardé");
+                    $error->location(URL . "/admin/users", "success_location");
+                } else {
+                    $error->danger("Mot de passe incorrect", 'error_container');
+                }
+            }
+            $error->getXmlMessage($this->app->getProperties(Users::class));
+        }
+
+        return $this->render('/admin/home.php', '/admin.php', [
+            'title' => 'Admin | Users | Update',
+            'form' => $form_update->createView(),
         ]);
     }
 

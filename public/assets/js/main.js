@@ -3,7 +3,9 @@ import { InputImage } from './module/InputImage.js'
 
 const forms = document.querySelectorAll('form')
 const errorContainer = document.querySelector('.error-container')
-const thisUrl = 'http://localhost/lestruellesardechoises.fr%20-%20Copie/public/'
+const thisUrl = 'http://localhost/lestruellesardechoises.fr/public/'
+const aboutLink = document.querySelector('.about_link')
+const projectsLink = document.querySelector('.projects_link')
 
 if (forms) {
     forms.forEach((form) => {

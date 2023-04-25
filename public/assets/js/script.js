@@ -13,6 +13,10 @@ window.addEventListener('scroll', () => {
 
 if (scrollDown) {
     scrollDown.addEventListener('click', () => {
-        window.scrollTo(0, window.innerHeight * 0.9)
+        window.scroll({
+            top: window.innerHeight - 70,
+            left: 0,
+            behavior: 'smooth',
+        })
     })
 }

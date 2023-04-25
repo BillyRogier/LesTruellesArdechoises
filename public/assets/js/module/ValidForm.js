@@ -51,6 +51,7 @@ export class ValidForm {
     }
 
     getErrorInput(elt) {
+        this.valid = false
         this.eltParent = elt.parentNode.parentNode.parentNode
         this.error = this.eltParent.querySelector('.error-message')
         this.error.innerHTML = ''
@@ -61,6 +62,30 @@ export class ValidForm {
             if (!emailTest.test(elt.value)) {
                 this.error.innerHTML +=
                     '<li>Veuillez rentrez un email valide</li>'
+            }
+        } else if (
+            elt.type == 'password' &&
+            elt.getAttribute('data-pass') == true
+        ) {
+            if (7 > elt.value.length) {
+                this.error.innerHTML +=
+                    '<li>Mot de passe trop court (min 7 characters)</li>'
+            }
+            if (!/[0-9]/.test(elt.value)) {
+                this.error.innerHTML +=
+                    '<li>Le mot de passe doit contenir au moins un chiffre</li>'
+            }
+            if (!/[a-z]/.test(elt.value)) {
+                this.error.innerHTML +=
+                    '<li>Le mot de passe doit contenir au moins une lettre miniscule</li>'
+            }
+            if (!/[A-Z]/.test(elt.value)) {
+                this.error.innerHTML +=
+                    '<li>Le mot de passe doit contenir au moins une lettre majuscule</li>'
+            }
+            if (!/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(elt.value)) {
+                this.error.innerHTML +=
+                    '<li>Le mot de passe doit contenir au moins un character spécial</li>'
             }
         }
         if (
@@ -112,11 +137,13 @@ export class ValidForm {
             .then((data) => {
                 const inputForm = this.form.querySelectorAll('input')
                 const textareaForm = this.form.querySelectorAll('textarea')
+                const selectForm = this.form.querySelectorAll('select')
                 if (!this.successRedirection(data)) {
                     this.errorContainer.innerHTML = data.error_container
                     this.propertie = data
                     this.inputEvent(inputForm)
                     this.inputEvent(textareaForm)
+                    this.inputEvent(selectForm)
                 }
             })
     }
