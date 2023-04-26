@@ -13,52 +13,53 @@ export class InputImage {
         this.dt = dt
         this.url = url
         this.deleteImage()
+        this.valid = new ValidForm(this.form, this.errorContainer)
     }
 
     loadImage() {
         if (this.input.files) {
-            for (var i = 0; i < this.input.files.length; i++) {
-                var file = this.input.files[i]
-                var reader = new FileReader()
-                reader.onloadstart = () => {
-                    if (this.allInputsImage[0]) {
-                        if (
-                            this.allInputsImage[0].value == '' ||
-                            (this.allInputsImage[0].value != '' &&
-                                !/[\[\]\\?]/g.test(this.allInputsImage[0].name))
-                        ) {
-                            this.imgContainer.innerHTML = 'Chargement...'
-                        }
-                    }
-                }
-                reader.onload = () => {
+            var curFiles = this.input.files
+            for (var i = 0; i < curFiles.length; i++) {
+                if (this.allInputsImage[0]) {
                     if (
                         this.allInputsImage[0].value == '' ||
                         (this.allInputsImage[0].value != '' &&
                             !/[\[\]\\?]/g.test(this.allInputsImage[0].name))
                     ) {
-                        this.imgContainer.innerHTML = ''
+                        this.imgContainer.innerHTML = 'Chargement...'
                     }
                 }
-                reader.onloadend = () => {
-                    this.imgContainer.innerHTML += `
+                if (
+                    this.allInputsImage[0].value == '' ||
+                    (this.allInputsImage[0].value != '' &&
+                        !/[\[\]\\?]/g.test(this.allInputsImage[0].name))
+                ) {
+                    this.imgContainer.innerHTML = ''
+                }
+                this.imgContainer.innerHTML += `
                         <div class="img-item">
                             <input name="${
                                 !/[\[\]\\?]/g.test(this.input.name)
                                     ? 'img'
                                     : 'img[]'
-                            }" type="hidden" value="${file.name}">
-                            <img src="${reader.result}">
-                            <input name="alt" type="text" placeholder="Description image" class="img_alt">
+                            }" type="hidden" value="${curFiles[i].name}">
+                            <img >
+                            <input name="${
+                                !/[\[\]\\?]/g.test(this.input.name)
+                                    ? 'alt'
+                                    : 'alt[]'
+                            }" type="text" placeholder="Description image" class="img_alt">
                             <span class="del_image btn">delete</span>
                         </div>`
-                    this.deleteImage()
-                    new ValidForm(this.form, this.errorContainer).getErrorInput(
-                        this.imgContainer.querySelector('input')
-                    )
-                }
-                reader.readAsDataURL(this.input.files[i])
-                this.dt.items.add(this.input.files[i])
+
+                var image =
+                    this.imgContainer.lastElementChild.querySelector('img')
+                image.src = window.URL.createObjectURL(curFiles[i])
+                this.deleteImage()
+                this.valid.getErrorInput(
+                    this.imgContainer.querySelector('input')
+                )
+                this.dt.items.add(curFiles[i])
             }
             this.input.files = this.dt.files
         }

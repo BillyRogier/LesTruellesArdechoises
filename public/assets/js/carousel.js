@@ -200,6 +200,7 @@ const carouselCreation = (carousel, interval) => {
 if (carouselHome) {
     carouselCreation(carouselHome, 'home')
 }
+// new Carousel(document.querySelector('#home'), carouselHome)
 // if (carouselReview) {
 //     carouselCreation(carouselReview, 'review')
 // }
@@ -260,7 +261,7 @@ const sliderCreation = (slider) => {
 
     if (sliderItems.length > 1) {
         const showindicator = () => {
-            for (i = 0; i <= sliderIndicators.length - 1; i++) {
+            for (let i = 0; i <= sliderIndicators.length - 1; i++) {
                 let sliderItemsWidth = sliderItems[0].offsetWidth + 20
                 let vue = Math.round(slider.offsetWidth / sliderItemsWidth)
                 if (

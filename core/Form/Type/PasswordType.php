@@ -18,7 +18,7 @@ class PasswordType extends Type
         if (strcspn($value, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') == strlen($value)) { //check if string has capital letters
             return false;
         }
-        if (strcspn($value, '{}[]|()_\/?§!$£') == strlen($value)) {
+        if (strcspn($value, '{}[]|()_\/?§!$£@') == strlen($value)) {
             return false;
         }
         return true;

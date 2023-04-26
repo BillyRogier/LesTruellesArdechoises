@@ -15,6 +15,9 @@
                             </div>
                             <img src="<?= URL ?>/assets/img/<?= $content->getJoin(Pictures::class)->getSrc() ?>" alt="<?= $content->getJoin(Pictures::class)->getAlt() ?>">
                             <div class="about_data grid">
+                                <div class="subtitle">
+                                    <h2><?= $content->getSubtitle() ?></h2>
+                                </div>
                                 <p><?= $content->getText() ?></p>
                             </div>
                         </div>

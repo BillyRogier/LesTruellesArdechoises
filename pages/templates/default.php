@@ -14,9 +14,10 @@ $info = $infoTable->findOne();
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" href="<?= URL ?>/assets/img/logo_responsive.svg" type="image/x-icon">
     <link rel="stylesheet" href="<?= URL ?>/assets/css/reset.css">
+    <meta name="description" content="<?= $app->desc ?>" />
     <link rel="stylesheet" href="<?= URL ?>/assets/css/style.css">
     <script src="<?= URL ?>/assets/js/script.js" defer></script>
-    <script src="<?= URL ?>/assets/js/carousel.js" defer></script>
+    <script src="<?= URL ?>/assets/js/carousel.js" type="module" defer></script>
     <script src="<?= URL ?>/assets/js/main.js" type="module" defer></script>
     <title><?= $app->title ?></title>
 </head>

@@ -7,7 +7,7 @@
 
             foreach ($carousels as $img) : ?>
                 <div class="carousel-item">
-                    <img src="<?= URL ?>\assets\img\<?= $img->getSrc() ?>" alt="<?= $img->getAlt() ?>">
+                    <img src="<?= URL ?>\assets\img\<?= $img->getJoin(Pictures::class)->getSrc() ?>" alt="<?= $img->getJoin(Pictures::class)->getAlt() ?>">
                 </div>
             <?php endforeach; ?>
         </div>
@@ -39,6 +39,9 @@
                     </div>
                     <img src="<?= URL ?>/assets/img/<?= $content->getJoin(Pictures::class)->getSrc() ?>" alt="<?= $content->getJoin(Pictures::class)->getAlt() ?>">
                     <div class="about_data grid">
+                        <div class="subtitle">
+                            <h2>À propos</h2>
+                        </div>
                         <p><?= $content->getText() ?></p>
                         <a href="<?= URL ?>/about" class="btn">Voir plus</a>
                     </div>

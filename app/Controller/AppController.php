@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App;
+use App\Table\Carousel;
 use App\Table\Contents;
 use App\Table\Info;
 use App\Table\Pages;
@@ -34,8 +35,11 @@ class AppController extends AbstarctController
         $PagesTable = new Pages();
         $page = $PagesTable->findOneBy(['url' => ""]);
 
-        $PicturesTable = new Pictures();
-        $carousel_pictures = $PicturesTable->find("MIN(alt) AS alt, src", "GROUP BY src ORDER BY RAND() LIMIT 4");
+        $CarouselTable = new Carousel();
+        $CarouselTable
+            ->innerJoin(Pictures::class)
+            ->on("carousel.img_id = pictures.img_id");
+        $carousel_pictures = $CarouselTable->find("MIN(pictures.alt) AS alt, pictures.src", "GROUP BY src ORDER BY RAND() LIMIT 5");
 
         $ProjectCategorysTable = new ProjectCategorys();
         $ProjectCategorysTable
@@ -51,7 +55,7 @@ class AppController extends AbstarctController
 
         return $this->render('/app/home.php', '/default.php', [
             'title' => 'Accueil',
-            'desc' => "",
+            'desc' => "Les Truelles Ardéchoises, entreprise de maçonnerie de renom dirigée par Arthur Rogier, offre des services de construction, de rénovation et de restauration de qualité supérieure pour des structures en pierre et en béton. Avec une équipe de maçons qualifiés, des matériaux durables et un engagement envers la satisfaction du client, Les Truelles Ardéchoises est l'entreprise de choix pour tout projet de maçonnerie dans le département de l'Ardèche, en France.",
             'carousels' => $carousel_pictures,
             'h1' => ucfirst($page->getTitle()),
             'content' => $content,

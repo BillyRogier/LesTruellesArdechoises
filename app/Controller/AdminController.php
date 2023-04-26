@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App;
+use App\Table\Carousel;
 use App\Table\Contents;
 use App\Table\Info;
 use App\Table\Pages;
@@ -52,16 +53,80 @@ class AdminController extends AbstarctController
         $PagesTable = new Pages();
         $page = $PagesTable->findOneBy(['url' => ""]);
 
+        $CarouselTable = new Carousel();
+        $CarouselTable
+            ->innerJoin(Pictures::class)
+            ->on("carousel.img_id = pictures.img_id");
+        $carousels = $CarouselTable->findAll();
+
         $form = $this->createForm("", "post", ['class' => 'grid'])
-            ->add("id", HiddenType::class, ['value' => $page->getPage_id()])
+            ->add("id", HiddenType::class, ['value' => $page->getPage_id()]);
+
+        if ($carousels) {
+            foreach ($carousels as $carousel) {
+                $form->add("img[]", HiddenType::class, [
+                    'value' => $carousel->getJoin(Pictures::class)->getSrc(),
+                    'html' =>
+                    '<img src="' . URL . '/assets/img/' . $carousel->getJoin(Pictures::class)->getSrc() . '" alt="' . $carousel->getJoin(Pictures::class)->getAlt() . '">
+                    <input name="alt[]" type="text" placeholder="Description image" class="img_alt" value="' . $carousel->getJoin(Pictures::class)->getAlt() . '">
+                    <span class="del_image btn">delete</span>'
+                ]);
+            }
+        } else {
+            $form->add("img[]", HiddenType::class);
+        }
+
+        $form
+            ->add("file[]", FileType::class, ['class' => 'file', 'label' => 'Fichier', 'id' => uniqid(), 'multiple' => "multilpe"])
             ->add("title", TextareaType::class, ['value' => $page->getTitle(), 'label' => 'Title', 'id' => "title"])
             ->add("submit", SubmitType::class, ['value' => 'Save', 'class' => 'btn'])
             ->getForm();
 
         if ($form->isSubmit()) {
             $error = $form->isXmlValid($PagesTable);
+            foreach ($_POST['img'] as $cle => $value) {
+                if (!isset($_POST['alt'][$cle]) || !isset($_POST['img'][$cle])) {
+                    $error->danger("error occured", "error_container");
+                } else if (empty($_POST['alt'][$cle]) || empty($_POST['img'][$cle])) {
+                    $error->danger("veuillez remplir le champs description image", "alt");
+                }
+            }
             if ($error->noError()) {
                 $data = $form->getData();
+                $uploads_dir = ROOT . '\public\assets\img';
+
+                foreach ($data['img'] as $cle => $value) {
+                    if (isset($data["file"]["name"][$cle])) {
+                        $tmp_name = $data["file"]["tmp_name"][$cle];
+                        $name = basename($data["file"]["name"][$cle]);
+                        if (!file_exists("$uploads_dir\\$name")) {
+                            move_uploaded_file($tmp_name, "$uploads_dir\\$name");
+                        }
+                    }
+
+                    $CarouselTable->getJoin(Pictures::class)
+                        ->setSrc($value)
+                        ->setAlt($data['alt'][$cle])
+                        ->flush();
+
+                    $CarouselTable
+                        ->setImg_id($CarouselTable->lastInsertId())
+                        ->flush();
+                }
+
+                foreach ($carousels as $carousel) {
+                    $old_img = $carousel->getJoin(Pictures::class)->getSrc();
+                    $imgs = $CarouselTable->getJoin(Pictures::class)->findAllby(['pictures.src' => $old_img]);
+
+                    if (count($imgs) <= 1) {
+                        if (file_exists("$uploads_dir\\$old_img")) {
+                            unlink("$uploads_dir\\$old_img");
+                        }
+                    }
+
+                    $carousel->delete(["carousel.id" => $carousel->getId()]);
+                    $carousel->getJoin(Pictures::class)->delete(["pictures.img_id" => $carousel->getImg_id()]);
+                }
 
                 $page
                     ->setTitle($data["title"])
@@ -235,7 +300,7 @@ class AdminController extends AbstarctController
             $error->getXmlMessage($this->app->getProperties(Info::class));
         }
 
-        return $this->render('/admin/home.php', '/admin.php', [
+        return $this->render('/admin/project_categorie-insert.php', '/admin.php', [
             'title' => 'Admin | Info',
             'form' => $form->createView(),
         ]);
@@ -389,7 +454,7 @@ class AdminController extends AbstarctController
 
         return $this->render('/admin/project_categorie-insert.php',  '/admin.php', [
             'title' => 'Admin | Project categorie | Insert',
-            'formPage' => $formPage->createView(),
+            'form' => $formPage->createView(),
         ]);
     }
 
@@ -636,7 +701,7 @@ class AdminController extends AbstarctController
 
         return $this->render('/admin/project_categorie-insert.php',  '/admin.php', [
             'title' => 'Admin | Project categorie | Insert',
-            'formPage' => $formPage->createView(),
+            'form' => $formPage->createView(),
         ]);
     }
 
@@ -953,7 +1018,7 @@ class AdminController extends AbstarctController
             $error->getXmlMessage($this->app->getProperties(Users::class));
         }
 
-        return $this->render('/admin/home.php', '/admin.php', [
+        return $this->render('/admin/project_categorie-insert.php', '/admin.php', [
             'title' => 'Admin | Users | Update',
             'form' => $form_update->createView(),
         ]);

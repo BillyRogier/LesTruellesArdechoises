@@ -63,7 +63,7 @@ class Table
 
     public function find($select, string $request)
     {
-        return $this->db->query("SELECT $select FROM " .  $this->tableJoin . " " . $request, get_class($this), $this->join);
+        return $this->db->query("SELECT $select FROM " .  $this->tableJoin . " " . $request, get_class($this), [$this->join]);
     }
 
     public function findBy($array, $attributes = null): static|bool

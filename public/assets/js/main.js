@@ -32,10 +32,12 @@ if (inputsFile) {
 const menuBurger = document.querySelector('.menu-burger')
 const menu = document.querySelector('.menu')
 
-menuBurger.addEventListener('click', () => {
-    menu.classList.toggle('active')
-    menuBurger.classList.toggle('active')
-})
+if (menuBurger) {
+    menuBurger.addEventListener('click', () => {
+        menu.classList.toggle('active')
+        menuBurger.classList.toggle('active')
+    })
+}
 
 const delContentBtn = document.querySelectorAll('.del_content')
 
